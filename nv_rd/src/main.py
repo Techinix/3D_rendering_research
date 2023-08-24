@@ -29,9 +29,10 @@ parser.add_argument("--choice", help="choose which approach to go with ", type=i
 parser.add_argument("--data", help="input data path", type=str, required=True)
 
 
-hparams = parser.parse_args()
+
 
 if __name__=="__main__":
+    hparams = parser.parse_args()
     if(not os.path.exists(hparams.data)):
         logging.info("Please specify a correct data path(npz) ...")
         sys.exit()
