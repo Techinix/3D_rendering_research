@@ -1,0 +1,39 @@
+colmap :
+  colmap : 0
+  video : ""
+  images : ""
+  run_colmap : False
+  dynamic : 
+  estimate_affine_shape :
+  hold : 8
+  video_fps : 3
+  time_slice : ""
+  colmap_matcher : "exhaustive"
+  skip_early : 0
+  colmap_text : "colmap_text"
+  colmap_db : "colmap.db"
+bucket :
+  region_name: "us-east-2"
+train :
+  lr : 5e-4
+  chunk_size : 16384
+  max_steps : 1000
+  batch_size : 1
+  num_rays : 1024
+  color_bkgd : "white"
+  batch_over_images : True
+test :
+  n_poses : 20
+  gen_poses : 0
+  gen_vid : 0
+model :
+  n_enc : 10
+  near_thresh : 2.
+  far_thresh : 6.
+display :
+  disp_every : 1
+saving: 
+  drive_path : ""
+  ckp_path : ""
+  load_ckp : ""
+ 
