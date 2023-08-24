@@ -6,4 +6,5 @@ tensorboard
 lpips
 piq
 einops
+requests
 
