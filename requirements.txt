@@ -1,5 +1,4 @@
 requests==2.27.1
-boto3
 numpy
 scikit-image
 torch
@@ -7,6 +6,5 @@ GPUtil
 tensorboard
 lpips
 piq
-ffmpeg
 einops
-pycolmap
+
