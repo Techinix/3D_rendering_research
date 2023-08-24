@@ -7,7 +7,7 @@ VERSION = '0.0.1'
 DESCRIPTION = 'a package that includes research in 3D rendering'
 
 setup(
-    name='3D_RD',
+    name='nv_rd',
     packages=find_packages(include=['package_code_folder'], exclude=["tests", "*.tests", "*.tests.*", "tests.*"]),
     version=VERSION,
     description=DESCRIPTION,
