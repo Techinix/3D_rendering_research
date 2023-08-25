@@ -1,1 +1,1 @@
-from .src import *
+from nv_rd import src

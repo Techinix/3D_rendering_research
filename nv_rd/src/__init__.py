@@ -1,1 +1,1 @@
-from . import *
+from .classic_nerf import *
