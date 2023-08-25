@@ -1,1 +1,1 @@
-from . import run_classic_nerf
+from . import *
