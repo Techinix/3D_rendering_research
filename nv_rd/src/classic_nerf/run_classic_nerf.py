@@ -360,3 +360,9 @@ class ClassicNerf():
             logging.info(f"Model tested successfully ! it took {end_test-start_test}")
         if(cfg.gen_vid):
             generate_video("/kaggle/working/out_sai/","out")
+
+
+if __name__ == "__main__":
+    hparams = Argsparser().parse_args()
+    classic_nerf=ClassicNerf(data="",use_npz=True)
+    classic_nerf.train()
