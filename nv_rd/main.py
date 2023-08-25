@@ -10,8 +10,8 @@ logging.basicConfig(
 def run_approach(choice,data,use_npz):
     logging.info(f"current working dir is : {os.getcwd()}")
     if choice == 1 :
-        import classic_nerf
-        approach = classic_nerf.ClassicNerf(data=data,use_npz=use_npz)
+        from .classic_nerf.run_classic_nerf import ClassicNerf
+        approach = ClassicNerf(data=data,use_npz=use_npz)
     elif choice == 2 :
         from .instant_ngp import InstantNgpOcc
         approach = InstantNgpOcc(data=data,use_npz=use_npz)
