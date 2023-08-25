@@ -8,6 +8,7 @@ logging.basicConfig(
     format='%(levelname)s:     %(message)s'
     )
 def run_approach(choice,data,use_npz):
+    logging.info(f"current working dir is : {os.getcwd()}")
     if choice == 1 :
         from .classic_nerf.run_classic_nerf import ClassicNerf
         approach = ClassicNerf(data=data,use_npz=use_npz)
