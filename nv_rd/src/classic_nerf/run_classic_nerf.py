@@ -90,7 +90,7 @@ def Argsparser():
 
 
 
-hparams = Argsparser().parse_args()
+#hparams = Argsparser().parse_args()
 
 class ClassicNerf():
     def __init__(self,data,use_npz) -> None:
