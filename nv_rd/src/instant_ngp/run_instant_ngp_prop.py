@@ -126,23 +126,7 @@ else:
     sampling_type = "uniform"
     opaque_bkgd = False
 
-train_dataset = SubjectLoader(
-    subject_id=args.scene,
-    root_fp=args.data_root,
-    split=args.train_split,
-    num_rays=init_batch_size,
-    device=device,
-    **train_dataset_kwargs,
-)
 
-test_dataset = SubjectLoader(
-    subject_id=args.scene,
-    root_fp=args.data_root,
-    split="test",
-    num_rays=None,
-    device=device,
-    **test_dataset_kwargs,
-)
 
 # setup the radiance field we want to train.
 prop_optimizer = torch.optim.Adam(
@@ -206,8 +190,26 @@ lpips_fn = lambda x, y: lpips_net(lpips_norm_fn(x), lpips_norm_fn(y)).mean()
 
 # training
 class InstantNgpProp():
-    def __init__(self):
-        pass
+    def __init__(self,data,use_npz):
+        self.data=data
+        self.use_npz=use_npz
+        self.train_dataset = SubjectLoader(
+        subject_id=args.scene,
+        root_fp=args.data_root,
+        split=args.train_split,
+        num_rays=init_batch_size,
+        device=device,
+        **train_dataset_kwargs,
+        )
+
+        self.test_dataset = SubjectLoader(
+        subject_id=args.scene,
+        root_fp=args.data_root,
+        split="test",
+        num_rays=None,
+        device=device,
+        **test_dataset_kwargs,
+        )
     def train(self):
         tic = time.time()
         for step in range(max_steps + 1):
@@ -216,8 +218,8 @@ class InstantNgpProp():
                 p.train()
             estimator.train()
 
-            i = torch.randint(0, len(train_dataset), (1,)).item()
-            data = train_dataset[i]
+            i = torch.randint(0, len(self.train_dataset), (1,)).item()
+            data = self.train_dataset[i]
 
             render_bkgd = data["color_bkgd"]
             rays = data["rays"]
@@ -275,8 +277,8 @@ class InstantNgpProp():
                 psnrs = []
                 lpips = []
                 with torch.no_grad():
-                    for i in tqdm.tqdm(range(len(test_dataset))):
-                        data = test_dataset[i]
+                    for i in tqdm.tqdm(range(len(self.test_dataset))):
+                        data = self.test_dataset[i]
                         render_bkgd = data["color_bkgd"]
                         rays = data["rays"]
                         pixels = data["pixels"]

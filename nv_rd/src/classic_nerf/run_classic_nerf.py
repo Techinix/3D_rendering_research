@@ -91,8 +91,9 @@ def Argsparser():
 hparams = Argsparser.parse_args()
 
 class ClassicNerf():
-    def __init__(self) -> None:
-        pass
+    def __init__(self,data,use_npz) -> None:
+        self.data=data
+        self.use_npz=use_npz
     def train(self):
         '''Train TinyNeRF model
         '''

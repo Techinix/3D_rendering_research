@@ -32,8 +32,9 @@ def setup_seed(seed):
 hparams = parse_args(parser)
 
 class MipNerf():
-    def __init__(self) -> None:
-        pass
+    def __init__(self,data,use_npz) -> None:
+        self.use_npz=use_npz
+        self.data=data
     def train(self):
         setup_seed(hparams['seed'])
         system = MipNeRFSystem(hparams)

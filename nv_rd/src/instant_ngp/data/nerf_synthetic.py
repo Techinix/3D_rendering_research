@@ -80,11 +80,14 @@ class SubjectLoader(torch.utils.data.Dataset):
         far: float = None,
         batch_over_images: bool = True,
         device: torch.device = torch.device("cpu"),
+        use_npz: bool = False,
+        
     ):
         super().__init__()
         assert split in self.SPLITS, "%s" % split
         assert subject_id in self.SUBJECT_IDS, "%s" % subject_id
         assert color_bkgd_aug in ["white", "black", "random"]
+        self.use_npz=use_npz
         self.split = split
         self.num_rays = num_rays
         self.near = self.NEAR if near is None else near

@@ -99,23 +99,7 @@ else:
     alpha_thre = 0.0
     cone_angle = 0.0
 
-train_dataset = SubjectLoader(
-    subject_id=args.scene,
-    root_fp=args.data_root,
-    split=args.train_split,
-    num_rays=init_batch_size,
-    device=device,
-    **train_dataset_kwargs,
-)
 
-test_dataset = SubjectLoader(
-    subject_id=args.scene,
-    root_fp=args.data_root,
-    split="test",
-    num_rays=None,
-    device=device,
-    **test_dataset_kwargs,
-)
 
 estimator = OccGridEstimator(
     roi_aabb=aabb, resolution=grid_resolution, levels=grid_nlvl
@@ -149,16 +133,34 @@ lpips_fn = lambda x, y: lpips_net(lpips_norm_fn(x), lpips_norm_fn(y)).mean()
 
 # training
 class InstantNgpOcc():
-    def __init__(self):
-        pass
+    def __init__(self,data,use_npz):
+        self.data=data
+        self.use_npz=use_npz
+        self.train_dataset = SubjectLoader(
+            subject_id=args.scene,
+            root_fp=args.data_root,
+            split=args.train_split,
+            num_rays=init_batch_size,
+            device=device,
+            **train_dataset_kwargs,
+        )
+
+        self.test_dataset = SubjectLoader(
+            subject_id=args.scene,
+            root_fp=args.data_root,
+            split="test",
+            num_rays=None,
+            device=device,
+            **test_dataset_kwargs,
+        )
     def train(self):
         tic = time.time()
         for step in range(max_steps + 1):
             radiance_field.train()
             estimator.train()
 
-            i = torch.randint(0, len(train_dataset), (1,)).item()
-            data = train_dataset[i]
+            i = torch.randint(0, len(self.train_dataset), (1,)).item()
+            data = self.train_dataset[i]
 
             render_bkgd = data["color_bkgd"]
             rays = data["rays"]
@@ -196,7 +198,7 @@ class InstantNgpOcc():
                 num_rays = int(
                     num_rays * (target_sample_batch_size / float(n_rendering_samples))
                 )
-                train_dataset.update_num_rays(num_rays)
+                self.train_dataset.update_num_rays(num_rays)
 
             # compute loss
             loss = F.smooth_l1_loss(rgb, pixels)
@@ -226,8 +228,8 @@ class InstantNgpOcc():
                 psnrs = []
                 lpips = []
                 with torch.no_grad():
-                    for i in tqdm.tqdm(range(len(test_dataset))):
-                        data = test_dataset[i]
+                    for i in tqdm.tqdm(range(len(self.test_dataset))):
+                        data = self.test_dataset[i]
                         render_bkgd = data["color_bkgd"]
                         rays = data["rays"]
                         pixels = data["pixels"]
