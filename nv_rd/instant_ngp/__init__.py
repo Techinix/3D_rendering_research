@@ -1,2 +1,0 @@
-from .run_instant_ngp_occ import InstantNgpOcc
-from .run_instant_ngp_prop import InstantNgpProp

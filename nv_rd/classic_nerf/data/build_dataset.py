@@ -10,8 +10,9 @@ import os
 from ..utils.colmap2nerf import closest_point_2_lines 
 from tqdm import tqdm
 class Nerf_Dataset(Dataset):
-    def __init__(self,cfg,split,device):
+    def __init__(self,cfg,split,device,use_npz):
         self.cfg=cfg
+        self.use_npz=use_npz
         self.num_rays=self.cfg.num_rays
         self.split=split
         self.training= self.split in ['train','trainval'] 
@@ -20,10 +21,10 @@ class Nerf_Dataset(Dataset):
         if((not self.training) and (self.gen_poses)):
             self.n_poses = self.cfg.n_poses
             self.poses= torch.from_numpy(self.generate_poses(self.n_poses)).to(torch.float32).to(self.device)
-        self.imgs,self.c2ws,self.H,self.W=load_all_data(self.cfg,self.cfg.data_path,self.split)
+        self.imgs,self.c2ws,self.H,self.W=load_all_data(self.cfg,self.cfg.data_path,self.split,self.use_npz)
         self.imgs = torch.from_numpy(self.imgs).to(torch.uint8)
         self.c2ws = torch.from_numpy(self.c2ws).to(torch.float32)
-        self.cam_intrinsics,self.K=self.load_camera_intrinsics(self.H,self.W)  
+        self.cam_intrinsics,self.K=self.load_camera_intrinsics(self.H,self.W,self.use_npz)  
         self.Rays = collections.namedtuple("Rays", ("origins", "viewdirs"))
         self.imgs=self.imgs.to(self.device)
         self.c2ws=self.c2ws.to(self.device)
@@ -172,47 +173,73 @@ class Nerf_Dataset(Dataset):
         data=self.preprocess(data)
         return data
     
-    def load_camera_intrinsics(self,h,w):
-        #transforms_path = self.cfg.data_path 
-        if(self.split=='all' or self.split=='trainval'):
-            f = open(os.path.join(self.cfg.data_path,"transforms.json"))
-        else :
-            f = open(os.path.join(self.cfg.data_path,f"transforms_{self.split}.json"))
-
-        
-        data = json.load(f)
-        camera_intrinsics={}
-        if(self.cfg.colmap):
+    def load_camera_intrinsics(self,h,w,use_npz):
+        if use_npz : 
+            data = np.load(self.cfg.data_path)
+            camera_intrinsics={}
             camera_intrinsics["camera_angle_x"]=data["camera_angle_x"]
             camera_intrinsics["camera_angle_y"]=data["camera_angle_y"]
-            camera_intrinsics["fl_x"]=data["fl_x"]/ self.cfg.downscale
-            camera_intrinsics["fl_y"]=data["fl_y"]/ self.cfg.downscale
+            camera_intrinsics["fl_x"]=data["fl_x"]
+            camera_intrinsics["fl_y"]=data["fl_y"]
             camera_intrinsics["k1"]=data["k1"]
             camera_intrinsics["k2"]=data["k2"]
             camera_intrinsics["p1"]=data["p1"]
             camera_intrinsics["p2"]=data["p2"]
-            camera_intrinsics["cx"]=data["cx"]/ self.cfg.downscale
-            camera_intrinsics["cy"]=data["cy"]/ self.cfg.downscale
-            camera_intrinsics["h"]=int(data["h"]/self.cfg.downscale)
-            camera_intrinsics["w"]=int(data["w"]/self.cfg.downscale)
-        else :
-            camera_angle_x = float(data["camera_angle_x"])
-            focal = 0.5 * w / np.tan(0.5 * camera_angle_x)
-            camera_intrinsics["fl_x"]=focal/ self.cfg.downscale
-            camera_intrinsics["fl_y"]=focal/ self.cfg.downscale
-            camera_intrinsics["cx"]=w/(2* self.cfg.downscale)
-            camera_intrinsics["cy"]=h/(2* self.cfg.downscale)
-        f.close()
-        
-        K = torch.tensor(
+            camera_intrinsics["cx"]=data["cx"]
+            camera_intrinsics["cy"]=data["cy"]
+            camera_intrinsics["h"]=int(data["h"])
+            camera_intrinsics["w"]=int(data["w"])
+            K = torch.tensor(
             [
                 [camera_intrinsics["fl_x"], 0, camera_intrinsics["cx"]],
                 [0, camera_intrinsics["fl_y"], camera_intrinsics["cy"]],
                 [0, 0, 1],
             ],
             dtype=torch.float32,
-        )  # (3, 3)
-        return camera_intrinsics,K
+            )  # (3, 3)
+            return camera_intrinsics,K
+        else :
+                
+            #transforms_path = self.cfg.data_path 
+            if(self.split=='all' or self.split=='trainval'):
+                f = open(os.path.join(self.cfg.data_path,"transforms.json"))
+            else :
+                f = open(os.path.join(self.cfg.data_path,f"transforms_{self.split}.json"))
+
+            
+            data = json.load(f)
+            camera_intrinsics={}
+            if(self.cfg.colmap):
+                camera_intrinsics["camera_angle_x"]=data["camera_angle_x"]
+                camera_intrinsics["camera_angle_y"]=data["camera_angle_y"]
+                camera_intrinsics["fl_x"]=data["fl_x"]/ self.cfg.downscale
+                camera_intrinsics["fl_y"]=data["fl_y"]/ self.cfg.downscale
+                camera_intrinsics["k1"]=data["k1"]
+                camera_intrinsics["k2"]=data["k2"]
+                camera_intrinsics["p1"]=data["p1"]
+                camera_intrinsics["p2"]=data["p2"]
+                camera_intrinsics["cx"]=data["cx"]/ self.cfg.downscale
+                camera_intrinsics["cy"]=data["cy"]/ self.cfg.downscale
+                camera_intrinsics["h"]=int(data["h"]/self.cfg.downscale)
+                camera_intrinsics["w"]=int(data["w"]/self.cfg.downscale)
+            else :
+                camera_angle_x = float(data["camera_angle_x"])
+                focal = 0.5 * w / np.tan(0.5 * camera_angle_x)
+                camera_intrinsics["fl_x"]=focal/ self.cfg.downscale
+                camera_intrinsics["fl_y"]=focal/ self.cfg.downscale
+                camera_intrinsics["cx"]=w/(2* self.cfg.downscale)
+                camera_intrinsics["cy"]=h/(2* self.cfg.downscale)
+            f.close()
+            
+            K = torch.tensor(
+                [
+                    [camera_intrinsics["fl_x"], 0, camera_intrinsics["cx"]],
+                    [0, camera_intrinsics["fl_y"], camera_intrinsics["cy"]],
+                    [0, 0, 1],
+                ],
+                dtype=torch.float32,
+            )  # (3, 3)
+            return camera_intrinsics,K
 
     def generate_poses(self,n_poses):
         print("[INFO] computing center of attention , radius and angle of view...")

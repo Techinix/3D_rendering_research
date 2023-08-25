@@ -140,8 +140,8 @@ class ClassicNerf():
             opt, cfg.max_steps+1, eta_min=0, last_epoch=- 1, verbose=False)
 
         
-        train_dataset = Nerf_Dataset(cfg,split='train',device=device)
-        test_dataset = Nerf_Dataset(cfg,split='test',device=device)
+        train_dataset = Nerf_Dataset(cfg,split='train',device=device,use_npz=self.use_npz)
+        test_dataset = Nerf_Dataset(cfg,split='test',device=device,use_npz=self.use_npz)
         
         
         

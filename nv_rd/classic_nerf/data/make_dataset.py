@@ -6,7 +6,15 @@ import sys
 from ..utils.utils import segment_single_image
 import cv2
 
-def load_all_data(cfg,data_dir,split):
+def load_all_data(cfg,data_dir,split,use_npz):
+    if(use_npz):
+        data = np.load(data_dir)
+        images = data["images"]
+        camtoworlds= data["poses"]
+        H = data["h"]
+        W = data["w"]
+        return images, camtoworlds ,H, W
+
     if(cfg.colmap_generated):
         if(split=='all' or split=='trainval'):
             with open(
