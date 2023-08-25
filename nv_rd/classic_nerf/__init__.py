@@ -1,0 +1,1 @@
+from .run_classic_nerf import ClassicNerf
