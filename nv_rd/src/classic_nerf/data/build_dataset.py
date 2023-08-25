@@ -7,7 +7,7 @@ import collections
 from .make_dataset import load_all_data
 import sys
 import os
-from utils.colmap2nerf import closest_point_2_lines 
+from ..utils.colmap2nerf import closest_point_2_lines 
 from tqdm import tqdm
 class Nerf_Dataset(Dataset):
     def __init__(self,cfg,split,device):
