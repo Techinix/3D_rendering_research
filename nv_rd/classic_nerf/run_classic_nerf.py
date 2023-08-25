@@ -116,7 +116,8 @@ class ClassicNerf():
             model_name : model_name
         """
         logging.info("Prepare data and initialize model...")
-        cfg = hparams
+        cfg = Argsparser().parse_args()
+
         # Seed RNG, for repeatability
         seed_everything(cfg.seed)
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
