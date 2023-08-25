@@ -3,7 +3,7 @@ import imageio.v2 as imageio
 import os
 import json
 import sys 
-from utils.utils import segment_single_image
+from ..utils.utils import segment_single_image
 import cv2
 
 def load_all_data(cfg,data_dir,split):
