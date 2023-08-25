@@ -4,7 +4,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from typing import Callable
-from models.encoders import SinusoidalEncoder
+from .encoders import SinusoidalEncoder
 
 class MLP(nn.Module):
     def __init__(

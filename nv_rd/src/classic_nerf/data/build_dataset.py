@@ -4,7 +4,7 @@ import torch.nn.functional as F
 import numpy as np
 import json
 import collections
-from data.make_dataset import load_all_data
+from .make_dataset import load_all_data
 import sys
 import os
 from utils.colmap2nerf import closest_point_2_lines 
