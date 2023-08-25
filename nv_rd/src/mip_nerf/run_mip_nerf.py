@@ -1,4 +1,4 @@
-from models.nerf_system import MipNeRFSystem
+from .models.nerf_system import MipNeRFSystem
 # pytorch-lightning
 from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import ModelCheckpoint, TQDMProgressBar
@@ -7,7 +7,7 @@ from pytorch_lightning.loggers import TensorBoardLogger
 
 import argparse
 import os
-from trainers.configs.config import parse_args
+from .trainers.configs.config import parse_args
 import torch
 import numpy as np
 import random

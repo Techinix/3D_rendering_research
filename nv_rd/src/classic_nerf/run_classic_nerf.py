@@ -7,15 +7,15 @@ import time
 import nerfacc
 import imageio.v2 as imageio
 import os 
-print(os.getcwd())
-from .models import occ_grid
-from utils.utils import seed_everything,load_checkpoint,save_checkpoint
 
-from visualization.visualize import generate_video
+from .models import occ_grid
+from .utils.utils import seed_everything,load_checkpoint,save_checkpoint
+
+from .visualization.visualize import generate_video
 from torch.utils.tensorboard import SummaryWriter
 import argparse
-from models.VanillaNerfRadianceField import VanillaNeRFRadianceField
-from data.build_dataset import Nerf_Dataset
+from .models.VanillaNerfRadianceField import VanillaNeRFRadianceField
+from .data.build_dataset import Nerf_Dataset
 
 import piq
 from lpips import LPIPS
