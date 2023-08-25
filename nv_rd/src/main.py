@@ -35,7 +35,7 @@ parser.add_argument("--use_npz",action="store_true",help="input npz data path")
 if __name__=="__main__":
     hparams = parser.parse_args()
     hparams.data =os.path.join(hparams.data,"")
-    logging.info(f"path u specified is {hparams.data}")
+    logging.info(f"path u specified is {hparams.data} while current working dir is {os.getcwd()}")
     if(not os.path.exists(hparams.data)):
         logging.info("Please specify a correct data path(npz) ...")
         sys.exit()
