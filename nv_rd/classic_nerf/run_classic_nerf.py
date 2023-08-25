@@ -364,6 +364,6 @@ class ClassicNerf():
 
 
 if __name__ == "__main__":
-    hparams = Argsparser().parse_args()
+    #hparams = Argsparser().parse_args()
     classic_nerf=ClassicNerf(data="",use_npz=True)
     classic_nerf.train()
