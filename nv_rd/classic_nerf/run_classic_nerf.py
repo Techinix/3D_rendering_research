@@ -62,7 +62,7 @@ class ClassicNerf():
             model_name : model_name
         """
         logging.info("Prepare data and initialize model...")
-        hparams = config.parse_args(Argsparser())
+        hparams = parse_args(Argsparser())
 
         # Seed RNG, for repeatability
         seed_everything(hparams["seed"])
