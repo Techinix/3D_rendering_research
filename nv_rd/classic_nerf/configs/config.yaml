@@ -1,0 +1,35 @@
+
+data_path : ""
+run_testing : False
+run_training : False
+seed : 42
+train :
+  lr : 5e-4
+  chunk_size : 16384
+  max_steps : 1000
+  batch_size : 1
+  num_rays : 1024
+  color_bkgd : "white"
+  batch_over_images : True
+test :
+  n_poses : 20
+  gen_poses : False
+  
+model :
+  n_enc : 10
+  near_thresh : 2.
+  far_thresh : 6.
+display :
+  disp_every : 1
+  save_mask : False
+saving: 
+  preds_folder : ""
+  model_name : ""
+  masked_folder : ""
+  drive_path : ""
+  save_ckp_path : ""
+  load_ckp_path : ""
+  gen_vid : False
+ 
+
+ 

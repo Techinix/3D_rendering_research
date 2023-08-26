@@ -10,18 +10,18 @@ import os
 from ..utils.colmap2nerf import closest_point_2_lines 
 from tqdm import tqdm
 class Nerf_Dataset(Dataset):
-    def __init__(self,cfg,split,device,use_npz):
-        self.cfg=cfg
+    def __init__(self,hparams,split,device,use_npz):
+        self.hparams=hparams
         self.use_npz=use_npz
-        self.num_rays=self.cfg.num_rays
+        self.num_rays=self.hparams["train.num_rays"]
         self.split=split
         self.training= self.split in ['train','trainval'] 
         self.device=device
-        self.gen_poses = self.cfg.gen_poses
+        self.gen_poses = self.hparams["test.gen_poses"]
         if((not self.training) and (self.gen_poses)):
-            self.n_poses = self.cfg.n_poses
+            self.n_poses = self.hparams["test.n_poses"]
             self.poses= torch.from_numpy(self.generate_poses(self.n_poses)).to(torch.float32).to(self.device)
-        self.imgs,self.c2ws,self.H,self.W=load_all_data(self.cfg,self.cfg.data_path,self.split,self.use_npz)
+        self.imgs,self.c2ws,self.H,self.W=load_all_data(self.hparams,self.hparams["data_path"],self.split,self.use_npz)
         self.imgs = torch.from_numpy(self.imgs).to(torch.uint8)
         self.c2ws = torch.from_numpy(self.c2ws).to(torch.float32)
         self.cam_intrinsics,self.K=self.load_camera_intrinsics(self.H,self.W,self.use_npz)  
@@ -30,7 +30,7 @@ class Nerf_Dataset(Dataset):
         self.c2ws=self.c2ws.to(self.device)
         self.K=self.K.to(self.device)
         
-        self.n_poses = self.cfg.n_poses
+        self.n_poses = self.hparams["test.n_poses"]
     def __len__(self):
         if((not self.training) and (self.gen_poses)):
             return self.n_poses
@@ -82,7 +82,7 @@ class Nerf_Dataset(Dataset):
         else :
             num_rays = self.num_rays
             if(self.training):
-                if(self.cfg.batch_over_images):
+                if(self.hparams["train.batch_over_images"]):
                     image_id = torch.randint(0,len(self.imgs),size=(num_rays,),device=self.imgs.device)
                 else :
                     image_id = [idx] * num_rays
@@ -141,7 +141,7 @@ class Nerf_Dataset(Dataset):
     
         if ((not self.training) and (self.gen_poses)) :
             rays= data["rays"]
-            if(self.cfg.color_bkgd=='white'):
+            if(self.hparams["train.color_bkgd"]=='white'):
                 color_bkgd=torch.ones(3,device=self.imgs.device)
             return {
                 "rays" : rays,
@@ -154,7 +154,7 @@ class Nerf_Dataset(Dataset):
             #splitting rgba into rgb pixels and opacity alpha
             pixels,alpha=torch.split(rgba, [3, 1], dim=-1)
             
-            if(self.cfg.color_bkgd=='white'):
+            if(self.hparams["train.color_bkgd"]=='white'):
                 color_bkgd=torch.ones(3,device=self.imgs.device)
             #if the opacity is low then fill with backrgound image
 
@@ -175,7 +175,7 @@ class Nerf_Dataset(Dataset):
     
     def load_camera_intrinsics(self,h,w,use_npz):
         if use_npz : 
-            data = np.load(self.cfg.data_path)
+            data = np.load(self.hparams["data_path"])
             camera_intrinsics={}
             camera_intrinsics["camera_angle_x"]=data["camera_angle_x"]
             camera_intrinsics["camera_angle_y"]=data["camera_angle_y"]
@@ -200,35 +200,35 @@ class Nerf_Dataset(Dataset):
             return camera_intrinsics,K
         else :
                 
-            #transforms_path = self.cfg.data_path 
+            #transforms_path = self.hparams["data_path 
             if(self.split=='all' or self.split=='trainval'):
-                f = open(os.path.join(self.cfg.data_path,"transforms.json"))
+                f = open(os.path.join(self.hparams["data_path"],"transforms.json"))
             else :
-                f = open(os.path.join(self.cfg.data_path,f"transforms_{self.split}.json"))
+                f = open(os.path.join(self.hparams["data_path"],f"transforms_{self.split}.json"))
 
             
             data = json.load(f)
             camera_intrinsics={}
-            if(self.cfg.colmap):
+            if(self.hparams["train.colmap"]):
                 camera_intrinsics["camera_angle_x"]=data["camera_angle_x"]
                 camera_intrinsics["camera_angle_y"]=data["camera_angle_y"]
-                camera_intrinsics["fl_x"]=data["fl_x"]/ self.cfg.downscale
-                camera_intrinsics["fl_y"]=data["fl_y"]/ self.cfg.downscale
+                camera_intrinsics["fl_x"]=data["fl_x"]/ self.hparams["downscale"]
+                camera_intrinsics["fl_y"]=data["fl_y"]/ self.hparams["downscale"]
                 camera_intrinsics["k1"]=data["k1"]
                 camera_intrinsics["k2"]=data["k2"]
                 camera_intrinsics["p1"]=data["p1"]
                 camera_intrinsics["p2"]=data["p2"]
-                camera_intrinsics["cx"]=data["cx"]/ self.cfg.downscale
-                camera_intrinsics["cy"]=data["cy"]/ self.cfg.downscale
-                camera_intrinsics["h"]=int(data["h"]/self.cfg.downscale)
-                camera_intrinsics["w"]=int(data["w"]/self.cfg.downscale)
+                camera_intrinsics["cx"]=data["cx"]/ self.hparams["downscale"]
+                camera_intrinsics["cy"]=data["cy"]/ self.hparams["downscale"]
+                camera_intrinsics["h"]=int(data["h"]/self.hparams["downscale"])
+                camera_intrinsics["w"]=int(data["w"]/self.hparams["downscale"])
             else :
                 camera_angle_x = float(data["camera_angle_x"])
                 focal = 0.5 * w / np.tan(0.5 * camera_angle_x)
-                camera_intrinsics["fl_x"]=focal/ self.cfg.downscale
-                camera_intrinsics["fl_y"]=focal/ self.cfg.downscale
-                camera_intrinsics["cx"]=w/(2* self.cfg.downscale)
-                camera_intrinsics["cy"]=h/(2* self.cfg.downscale)
+                camera_intrinsics["fl_x"]=focal/ self.hparams["downscale"]
+                camera_intrinsics["fl_y"]=focal/ self.hparams["downscale"]
+                camera_intrinsics["cx"]=w/(2* self.hparams["downscale"])
+                camera_intrinsics["cy"]=h/(2* self.hparams["downscale"])
             f.close()
             
             K = torch.tensor(
@@ -247,12 +247,12 @@ class Nerf_Dataset(Dataset):
         totp = np.array([0.0, 0.0, 0.0]) # xyz of the center of attention == total position
         if(self.split=='all' or self.split=='trainval'):
             with open(
-                os.path.join(self.cfg.data_path,"transforms.json"), "r"
+                os.path.join(self.hparams["data_path"],"transforms.json"), "r"
             ) as f:
                 meta = json.load(f)
         else :
             with open(
-                os.path.join(self.cfg.data_path,f"transforms_{self.split}.json"), "r"
+                os.path.join(self.hparams["data_path"],f"transforms_{self.split}.json"), "r"
             ) as f:
                 meta = json.load(f)
 

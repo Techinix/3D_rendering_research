@@ -7,7 +7,7 @@ import time
 import nerfacc
 import imageio.v2 as imageio
 import os 
-
+import configs.config as config
 from .models import occ_grid
 from .utils.utils import seed_everything,load_checkpoint,save_checkpoint
 
@@ -29,68 +29,14 @@ def Argsparser():
                                      to estimate 3D shapes from 2D images",
                                     epilog="for further question, contact X@gmail.com",
                                    )
-    #general config
-    parser.add_argument('--data_path',help='path_to_images',)
-    parser.add_argument('--test',default=0,type=int,help='Generate poses and do inference on those poses',)
-    parser.add_argument('--run_test',default=0,type=int,help='inference time',)
-    parser.add_argument('--train',default=0,type=int,help='train_time',)
-    parser.add_argument('--downscale',default=1,type=int,help='downscale img and intrinsics value by factor')
-    parser.add_argument('--seed',default=42,type=int,help='random seed to fix output results')
-    parser.add_argument('--colmap_generated',default=0,type=int,help='specify if the transforms provided are colmap generated or not')
-    #colmap config (convert a text colmap export to nerf format transforms.json; optionally convert video to images, and optionally run colmap in the first place)
-    parser.add_argument('--colmap' , default=0 , type=int ,help="choose whether to use colmap transforms or not")
-    parser.add_argument("--video", default="", help="input path to the video")
-    parser.add_argument("--images", default="", help="input path to the images folder, ignored if --video is provided")
-    parser.add_argument("--run_colmap", action="store_true", help="run colmap first on the image folder")
-    parser.add_argument("--keep_colmap_coords", action="store_true", help="Keep transforms.json in COLMAP's original frame of reference (this will avoid reorienting and repositioning the scene for preview and rendering).")
     
-    parser.add_argument("--dynamic", action="store_true", help="for dynamic scene, extraly save time calculated from frame index.")
-    parser.add_argument("--estimate_affine_shape", action="store_true", help="colmap SiftExtraction option, may yield better results, yet can only be run on CPU.")
-    parser.add_argument('--hold', type=int, default=8, help="hold out for validation every $ images")
+    parser.add_argument("--config", help="Path to config file.", required=False, default='./configs/config.yaml')
+    parser.add_argument("opts", nargs=argparse.REMAINDER,
+                        help="Modify hparams Example: train.py resume out_dir TRAIN.BATCH_SIZE 2")
 
-    parser.add_argument("--video_fps", default=3)
-    parser.add_argument("--time_slice", default="", help="time (in seconds) in the format t1,t2 within which the images should be generated from the video. eg: \"--time_slice '10,300'\" will generate images only from 10th second to 300th second of the video")
-
-    parser.add_argument("--colmap_matcher", default="exhaustive", choices=["exhaustive","sequential","spatial","transitive","vocab_tree"], help="select which matcher colmap should use. sequential for videos, exhaustive for adhoc images")
-    parser.add_argument("--skip_early", default=0, help="skip this many images from the start")
-
-    parser.add_argument("--colmap_text", default="colmap_text", help="input path to the colmap text files (set automatically if run_colmap is used)")
-    parser.add_argument("--colmap_db", default="colmap.db", help="colmap database filename")
-    #bucket config
-    parser.add_argument('--region_name',default='us-east-2',help='region name',)
-    #train config
-    parser.add_argument('--lr',default=5e-4,type=float,help='learning rate') 
-    parser.add_argument('--chunk_size',default=16384,help='chunksize',)
-    parser.add_argument('--max_steps',default=1000,type=int,help='number of iterations',)
-    parser.add_argument('--batch_size',default=1,type=int,help='batch size',)
-    parser.add_argument('--num_rays',default=1024,type=int,help="number of rays to be rendered")
-    parser.add_argument('--color_bkgd',default='white',type=str,help="background color to render")
-    parser.add_argument('--batch_over_images',default=0,type=int,help="select batch from images")
-    #test config
-    parser.add_argument('--n_poses',default=20,type=int,help='num_poses to display',)
-    parser.add_argument('--gen_poses',default=0,type=int,help="choose whether to use generated poses or not")
-    parser.add_argument('--gen_vid',default=0,type=int,help="choose whether to generate video or not")
-    #model config
-    parser.add_argument('--n_enc',default=10,help='num_encoding_functions',)
-    parser.add_argument('--near_thresh',default=2.,help='near_thresh',)
-    parser.add_argument('--far_thresh',default=6.,help='far_thresh',)
-    parser.add_argument('--Nc',default=64,type=int,help='depth_samples_per_ray_coarse')
-    parser.add_argument('--Nf',default=128,type=int,help='depth_samples_per_ray_fine')
-    #display config
-    parser.add_argument('--disp_every',default=1,type=int,help='display every ',)
-    parser.add_argument('--save_mask',default=0,type=int,help='save masks or not ',)
-    #saving checkpoint config
-    parser.add_argument('--preds_folder',type=str,default='')
-    parser.add_argument('--model_name',type=str,default='')
-    parser.add_argument('--masked_folder',type=str,default='')
-    parser.add_argument('--save_ckp_path',type=str,default='')
-    parser.add_argument('--load_ckp_path',type=str,default=None,help="input path to checkpoint to be loaded")
-    
     return parser
 
 
-
-#hparams = Argsparser().parse_args()
 
 class ClassicNerf():
     def __init__(self,data,use_npz) -> None:
@@ -116,33 +62,23 @@ class ClassicNerf():
             model_name : model_name
         """
         logging.info("Prepare data and initialize model...")
-        cfg = Argsparser().parse_args()
+        hparams = config.parse_args(Argsparser())
 
         # Seed RNG, for repeatability
-        seed_everything(cfg.seed)
+        seed_everything(hparams["seed"])
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         model = VanillaNeRFRadianceField().to(device)
         num_gpus = torch.cuda.device_count()
         print("num_gpus : ",num_gpus)
         
-        opt = torch.optim.Adam(model.parameters(), lr=cfg.lr) 
-        """scheduler = torch.optim.lr_scheduler.MultiStepLR(
-            opt,
-            milestones=[
-                cfg.max_steps // 2,
-                cfg.max_steps * 3 // 4,
-                cfg.max_steps * 5 // 6,
-                cfg.max_steps * 9 // 10,
-            ],
-            gamma=0.33,
-        )"""
-
+        opt = torch.optim.Adam(model.parameters(), lr=hparams["train.lr"]) 
+        
         scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-            opt, cfg.max_steps+1, eta_min=0, last_epoch=- 1, verbose=False)
+            opt, hparams["train.max_steps"]+1, eta_min=0, last_epoch=- 1, verbose=False)
 
         
-        train_dataset = Nerf_Dataset(cfg,split='train',device=device,use_npz=self.use_npz)
-        test_dataset = Nerf_Dataset(cfg,split='test',device=device,use_npz=self.use_npz)
+        train_dataset = Nerf_Dataset(hparams,split='train',device=device,use_npz=self.use_npz)
+        test_dataset = Nerf_Dataset(hparams,split='test',device=device,use_npz=self.use_npz)
         
         
         
@@ -192,10 +128,10 @@ class ClassicNerf():
         lpips_norm_fn = lambda x: x[None, ...].permute(0, 3, 1, 2)  * 2 - 1
         lpips_metric = lambda x, y: lpips_net(lpips_norm_fn(x), lpips_norm_fn(y)).mean()
         ssim_metric= lambda x,y  : piq.ssim(perm_fn(x),perm_fn(y))
-        save_step = cfg.max_steps/5
+        save_step = hparams["train.max_steps"]/5
 
-        if(not cfg.load_ckp_path==None ):
-            checkpoint=torch.load(cfg.load_ckp_path)
+        if(not hparams["saving.load_ckp_path"]==None ):
+            checkpoint=torch.load(hparams["saving.load_ckp_path"])
             print(
                 f"model name is : {checkpoint['name']}",
                 f"checkpoint trained for : {checkpoint['step']}",
@@ -203,14 +139,14 @@ class ClassicNerf():
                 )
             load_checkpoint(checkpoint, model,estimator,opt,scheduler)
             
-        if(cfg.train) :
+        if(hparams["run_training"]) :
             
-            print(f"Start training model for {cfg.max_steps} epochs...")
+            print(f"Start training model for {hparams['train.max_steps']} epochs...")
             scaler = torch.cuda.amp.GradScaler(enabled=True)
             start_time = time.time()
         
             
-            for e in range(1, cfg.max_steps+1):
+            for e in range(1, hparams["train.max_steps"]+1):
                 model.train()
                 estimator.train()
                 i=torch.randint(0, len(train_dataset), (1,)).item()
@@ -259,7 +195,7 @@ class ClassicNerf():
                 opt.step()
                 scheduler.step()
                 # Display images/plots/stats
-                if e % cfg.disp_every==0: 
+                if e % hparams["display.disp_every"]==0: 
                     loss = torch.nn.functional.mse_loss(rgb, pixels)
                     psnr = -10. * torch.log10(loss) 
                     writer.add_scalar('Loss/train', loss, e)
@@ -288,10 +224,10 @@ class ClassicNerf():
                         "model": model.state_dict(),
                         "estimator" : estimator.state_dict(),
                         "scheduler" : scheduler.state_dict(),
-                        "name" : cfg.model_name+str(e)+"_aabbxyz_"+str(side_x)+"_"+str(side_y)+"_"+str(side_z)+"_"+date_string,
+                        "name" : hparams["saving.model_name"]+str(e)+"_aabbxyz_"+str(side_x)+"_"+str(side_y)+"_"+str(side_z)+"_"+date_string,
                     }
 
-                    save_checkpoint(checkpoint,cfg.save_ckp_path+ f"{checkpoint['name']}")
+                    save_checkpoint(checkpoint,hparams["saving.save_ckp_path"]+ f"{checkpoint['name']}")
             end_time = time.time()
             logging.info(f"Model trained successfully ! it took {end_time-start_time}")
             avg_loss = sum(losses)/(len(losses))
@@ -301,7 +237,7 @@ class ClassicNerf():
                 f"Training Time  = {end_time-start_time} | "
                 f"loss={avg_loss:.5f} | psnr={avg_psnr:.2f} "
             )           
-        if(cfg.run_test):
+        if(hparams["run_testing"]):
             print(f"Start testing phase: ")
             start_test=time.time()
             model.eval()
@@ -311,7 +247,7 @@ class ClassicNerf():
                     start=time.time()
                     data = test_dataset[i]
                     rays = data["rays"]
-                    if(not cfg.gen_poses):
+                    if(not hparams["test.gen_poses"]):
                         pixels = data["pixels"] 
                     h=data["height"]
                     w=data["width"]
@@ -325,10 +261,10 @@ class ClassicNerf():
                         render_bkgd=render_bkgd
                         #test options
                     )
-                    if i % cfg.disp_every==0: 
+                    if i % hparams["display.disp_every"]==0: 
                         end=time.time()
                         elapsed_time=end-start
-                        if(not cfg.gen_poses):
+                        if(not hparams["test.gen_poses"]):
                             loss = torch.nn.functional.mse_loss(rgb, pixels)
                             psnr = -10. * torch.log10(loss)
                             lpips = lpips_metric(rgb, pixels).item()
@@ -354,12 +290,12 @@ class ClassicNerf():
                             )
                         rgb = torch.reshape(rgb, (h, w, 3))
                         imageio.imwrite(
-                                        cfg.preds_folder+f"rgb_{i}.jpg",
+                                        hparams["saving.preds_folder"]+f"rgb_{i}.jpg",
                                         (rgb.cpu().numpy() * 255).astype(np.uint8),
                                     )
             end_test=time.time()
             logging.info(f"Model tested successfully ! it took {end_test-start_test}")
-        if(cfg.gen_vid):
+        if(hparams["saving.gen_vid"]):
             generate_video("/kaggle/working/out_sai/","out")
 
 
