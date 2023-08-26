@@ -1,1 +1,1 @@
-from configs.config import parse_args
+from .config import parse_args

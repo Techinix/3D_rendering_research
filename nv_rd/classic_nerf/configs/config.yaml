@@ -21,8 +21,9 @@ model :
   far_thresh : 6.
 display :
   disp_every : 1
-  save_mask : False
+  
 saving: 
+  save_mask : False
   preds_folder : ""
   model_name : ""
   masked_folder : ""

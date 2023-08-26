@@ -7,7 +7,7 @@ import time
 import nerfacc
 import imageio.v2 as imageio
 import os 
-import configs.config as config
+from .configs.config import parse_args
 from .models import occ_grid
 from .utils.utils import seed_everything,load_checkpoint,save_checkpoint
 

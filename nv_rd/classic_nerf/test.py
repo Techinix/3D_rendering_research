@@ -19,4 +19,4 @@ def Argsparser():
 hparams = cfg.parse_args(Argsparser())
 
 
-print(hparams,hparams.run_testing)
+print(hparams,hparams["run_testing"])
