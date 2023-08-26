@@ -7,4 +7,5 @@ lpips
 piq
 einops
 requests
+lightning
 

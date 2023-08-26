@@ -7,7 +7,7 @@ from pytorch_lightning.loggers import TensorBoardLogger
 
 import argparse
 import os
-from .trainers.configs.config import parse_args
+from .configs.config import parse_args
 import torch
 import numpy as np
 import random
