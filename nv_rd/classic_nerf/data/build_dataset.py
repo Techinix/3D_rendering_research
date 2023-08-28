@@ -5,10 +5,13 @@ import numpy as np
 import json
 import collections
 from .make_dataset import load_all_data
-import sys
 import os
 from ..utils.colmap2nerf import closest_point_2_lines 
-from tqdm import tqdm
+import logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(levelname)s:     %(message)s'
+    )
 class Nerf_Dataset(Dataset):
     def __init__(self,hparams,split,device,use_npz):
         self.hparams=hparams
@@ -242,7 +245,7 @@ class Nerf_Dataset(Dataset):
             return camera_intrinsics,K
 
     def generate_poses(self,n_poses):
-        print("[INFO] computing center of attention , radius and angle of view...")
+        logging.info("computing center of attention , radius and angle of view...")
         totw = 0.0 # total weight
         totp = np.array([0.0, 0.0, 0.0]) # xyz of the center of attention == total position
         if(self.split=='all' or self.split=='trainval'):

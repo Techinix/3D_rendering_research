@@ -5,10 +5,14 @@ import json
 import sys 
 from ..utils.utils import segment_single_image
 import cv2
-
-def load_all_data(hparams,data_dir,split,use_npz):
+import logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(levelname)s:     %(message)s'
+    )
+def load_all_data(hparams,split,use_npz):
     if(use_npz):
-        data = np.load(data_dir)
+        data = np.load(hparams["data_path"])
         images = data["images"]
         camtoworlds= data["poses"]
         H = data["h"]
@@ -18,33 +22,32 @@ def load_all_data(hparams,data_dir,split,use_npz):
     if(hparams["colmap_generated"]):
         if(split=='all' or split=='trainval'):
             with open(
-                os.path.join(data_dir, "transforms_colmap.json"), "r"
+                os.path.join(hparams["data_path"], "transforms_colmap.json"), "r"
             ) as fp:
                 meta = json.load(fp)
         else :
             with open(
-                os.path.join(data_dir, f"transforms_{split}_colmap.json"), "r"
+                os.path.join(hparams["data_path"], f"transforms_{split}_colmap.json"), "r"
             ) as fp:
                 meta = json.load(fp)
     else :
         if(split=='all' or split=='trainval'):
             with open(
-                os.path.join(data_dir, "transforms.json"), "r"
+                os.path.join(hparams["data_path"], "transforms.json"), "r"
             ) as fp:
                 meta = json.load(fp)
         else :
             with open(
-                os.path.join(data_dir, f"transforms_{split}.json"), "r"
+                os.path.join(hparams["data_path"], f"transforms_{split}.json"), "r"
             ) as fp:
                 meta = json.load(fp)
     images = []
     camtoworlds = []
     ext=meta["frames"][0]["file_path"].split(".")[1]
-    print("extension is: ",ext)
     if (ext=='png' or (not hparams["colmap_generated"])):#already masked
         for i in range(len(meta["frames"])):
             frame = meta["frames"][i]
-            fname = os.path.join(data_dir, frame["file_path"] +".png")
+            fname = os.path.join(hparams["data_path"], frame["file_path"] +".png")
             rgba = imageio.imread(fname)
             camtoworlds.append(frame["transform_matrix"])
             images.append(rgba)
@@ -74,7 +77,7 @@ def load_all_data(hparams,data_dir,split,use_npz):
         cnt=0
         for i in range(len(meta["frames"])):
             frame = meta["frames"][i]
-            fname = os.path.join(data_dir, frame["file_path"] )
+            fname = os.path.join(hparams["data_path"], frame["file_path"] )
             rgba,found = segment_single_image(predictor,fname,mask_ids) 
             if not found  :
                 continue
@@ -83,7 +86,7 @@ def load_all_data(hparams,data_dir,split,use_npz):
             images.append(rgba)
             if hparams["saving.save_mask"] :
                 cv2.imwrite(os.path.join(hparams["saving.masked_folder"], f"masked_{fname.split('.')[0]}.png"), rgba)
-        print("nb of images masked: ",cnt)
+        logging.info(f"nb of images masked:{cnt} ")
     images = np.stack(images, axis=0)
     camtoworlds = np.stack(camtoworlds, axis=0)
     H,W = images.shape[1:3]
