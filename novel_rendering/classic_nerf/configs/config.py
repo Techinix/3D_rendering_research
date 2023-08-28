@@ -6,7 +6,7 @@ from ast import literal_eval
 from os.path import dirname, join
 from typing import Tuple
 
-DEFAULT_CONFIG_FILE = join(dirname(__file__), 'default.yaml')
+DEFAULT_CONFIG_FILE = join(dirname(__file__), 'config.yaml')
 
 
 def _parse_dict(d, d_out=None, prefix=""):
