@@ -40,7 +40,10 @@ def Argsparser():
 
 class ClassicNerf():
     def __init__(self,data_path,use_npz) -> None:
-        self.hparams = parse_args(Argsparser())
+        try:
+            self.hparams = parse_args(Argsparser())
+        except:
+            logging.warning("Please verify your parser")
         self.hparams["data_path"]=data_path
         self.use_npz=use_npz
     def train(self):
