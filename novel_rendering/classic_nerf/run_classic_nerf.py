@@ -40,6 +40,7 @@ def Argsparser():
 
 class ClassicNerf():
     def __init__(self,data_path,use_npz) -> None:
+        logging.info("Instanciating Classic Nerf")
         try:
             self.hparams = parse_args(Argsparser())
         except:
