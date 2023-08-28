@@ -4,7 +4,7 @@ import logging
 from datetime import datetime
 import torch.nn.functional as F
 import time
-import nerfacc
+#import nerfacc
 import imageio.v2 as imageio
 import os 
 from .configs.config import parse_args
@@ -16,13 +16,25 @@ from torch.utils.tensorboard import SummaryWriter
 import argparse
 from .models.VanillaNerfRadianceField import VanillaNeRFRadianceField
 from .data.build_dataset import Nerf_Dataset
-
+import sys
 import piq
 from lpips import LPIPS
 logging.basicConfig(
     level=logging.INFO,
     format='%(levelname)s:     %(message)s'
     )
+def Argsparser():
+    parser=argparse.ArgumentParser(prog="Execution of Nerf Benchmarking",
+                                   description="An implementation of the Tiny Neural Radiance Field Nerf Approach\
+                                     to estimate 3D shapes from 2D images",
+                                    epilog="for further question, contact X@gmail.com",
+                                   )
+    
+    parser.add_argument("--config", help="Path to config file.", required=False, default='./configs/config.yaml')
+    parser.add_argument("opts", nargs=argparse.REMAINDER,
+                        help="Modify self.hparams Example: train.py resume out_dir TRAIN.BATCH_SIZE 2")
+
+    return parser
 
 def args_not_parser():
     pass
@@ -36,12 +48,11 @@ class hello():
 class ClassicNerf():
     def __init__(self,data_path,use_npz) -> None:
         logging.info("Instanciating Classic Nerf")
-        """try:
-            pass
-            #self.hparams = parse_args(Argsparser())
+        try:
+            self.hparams = parse_args(Argsparser())
             
         except:
-            logging.warning("Please verify your parser")"""
+            logging.warning("Please verify your parser")
         self.hparams["data_path"]=data_path
         self.use_npz=use_npz
     def train(self):
@@ -65,7 +76,8 @@ class ClassicNerf():
         """
         logging.info("Prepare data and initialize model...")
         
-
+        logging.info("reached desired sport , shutting down...")
+        sys.exit()
         # Seed RNG, for repeatability
         seed_everything(self.hparams["seed"])
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
