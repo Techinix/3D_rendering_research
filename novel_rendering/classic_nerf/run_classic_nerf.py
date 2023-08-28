@@ -23,7 +23,7 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(levelname)s:     %(message)s'
     )
-def Argsparser():
+"""def Argsparser():
     parser=argparse.ArgumentParser(prog="Execution of Nerf Benchmarking",
                                    description="An implementation of the Tiny Neural Radiance Field Nerf Approach\
                                      to estimate 3D shapes from 2D images",
@@ -34,17 +34,18 @@ def Argsparser():
     parser.add_argument("opts", nargs=argparse.REMAINDER,
                         help="Modify self.hparams Example: train.py resume out_dir TRAIN.BATCH_SIZE 2")
 
-    return parser
-
+    return parser"""
 
 
 class ClassicNerf():
     def __init__(self,data_path,use_npz) -> None:
         logging.info("Instanciating Classic Nerf")
-        try:
-            self.hparams = parse_args(Argsparser())
+        """try:
+            pass
+            #self.hparams = parse_args(Argsparser())
+            
         except:
-            logging.warning("Please verify your parser")
+            logging.warning("Please verify your parser")"""
         self.hparams["data_path"]=data_path
         self.use_npz=use_npz
     def train(self):
@@ -292,5 +293,6 @@ class ClassicNerf():
 
 if __name__ == "__main__":
     #self.hparams = Argsparser().parse_args()
-    classic_nerf=ClassicNerf(data="",use_npz=True)
-    classic_nerf.train()
+    """classic_nerf=ClassicNerf(data="",use_npz=True)
+    classic_nerf.train()"""
+    print("hello")
