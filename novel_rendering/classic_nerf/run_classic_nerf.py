@@ -24,7 +24,14 @@ logging.basicConfig(
     format='%(levelname)s:     %(message)s'
     )
 
+def args_not_parser():
+    pass
+def args_parser():
+    pass
 
+class hello():
+  def __init__():
+    pass
 
 class ClassicNerf():
     def __init__(self,data_path,use_npz) -> None:
