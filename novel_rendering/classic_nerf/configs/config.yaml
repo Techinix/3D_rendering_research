@@ -19,9 +19,9 @@ model :
   n_enc : 10
   near_thresh : 2.
   far_thresh : 6.
-display :
-  disp_every : 1
-  
+logs :
+  save_every : 1
+  show_every : 10
 saving: 
   save_mask : False
   preds_folder : ""

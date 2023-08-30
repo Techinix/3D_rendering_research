@@ -186,7 +186,7 @@ class ClassicNerf():
                 opt.step()
                 scheduler.step()
                 # Display images/plots/stats
-                if e % self.hparams["display.disp_every"]==0: 
+                if e % self.hparams["logs.save_every"]==0: 
                     loss = torch.nn.functional.mse_loss(rgb, pixels)
                     psnr = -10. * torch.log10(loss) 
                     writer.add_scalar('Loss/train', loss, e)
@@ -194,7 +194,7 @@ class ClassicNerf():
                     losses.append(loss)
                     psnrs.append(psnr)
 
-                if e % save_step == 0 : 
+                if e % self.hparams["logs.show_every"] == 0 : 
                     end_time = time.time()
                     elapsed_time=end_time-start_time
                     logging.info(
