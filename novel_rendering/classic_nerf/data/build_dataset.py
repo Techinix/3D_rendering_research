@@ -180,16 +180,16 @@ class Nerf_Dataset(Dataset):
         if use_npz : 
             data = np.load(self.hparams["data_path"])
             camera_intrinsics={}
-            camera_intrinsics["camera_angle_x"]=data["camera_angle_x"]
-            camera_intrinsics["camera_angle_y"]=data["camera_angle_y"]
-            camera_intrinsics["fl_x"]=data["fl_x"]
-            camera_intrinsics["fl_y"]=data["fl_y"]
-            camera_intrinsics["k1"]=data["k1"]
-            camera_intrinsics["k2"]=data["k2"]
-            camera_intrinsics["p1"]=data["p1"]
-            camera_intrinsics["p2"]=data["p2"]
-            camera_intrinsics["cx"]=data["cx"]
-            camera_intrinsics["cy"]=data["cy"]
+            camera_intrinsics["camera_angle_x"]=data["camera_angle_x"].item()
+            camera_intrinsics["camera_angle_y"]=data["camera_angle_y"].item()
+            camera_intrinsics["fl_x"]=data["fl_x"].item()
+            camera_intrinsics["fl_y"]=data["fl_y"].item()
+            camera_intrinsics["k1"]=data["k1"].item()
+            camera_intrinsics["k2"]=data["k2"].item()
+            camera_intrinsics["p1"]=data["p1"].item()
+            camera_intrinsics["p2"]=data["p2"].item()
+            camera_intrinsics["cx"]=data["cx"].item()
+            camera_intrinsics["cy"]=data["cy"].item()
             camera_intrinsics["h"]=int(data["h"])
             camera_intrinsics["w"]=int(data["w"])
             print(camera_intrinsics)
