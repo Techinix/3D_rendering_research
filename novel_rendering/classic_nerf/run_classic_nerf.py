@@ -124,7 +124,7 @@ class ClassicNerf():
         lpips_metric = lambda x, y: lpips_net(lpips_norm_fn(x), lpips_norm_fn(y)).mean()
         save_step = self.hparams["train.max_steps"]/5
 
-        if(not self.hparams["saving.load_ckp_path"]==None ):
+        if(self.hparams["saving.load_ckp_path"]):
             checkpoint=torch.load(self.hparams["saving.load_ckp_path"])
             logging.info(
                 f"model name is : {checkpoint['name']} || \

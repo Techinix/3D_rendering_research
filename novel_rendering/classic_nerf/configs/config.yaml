@@ -29,7 +29,7 @@ saving:
   masked_folder : ""
   drive_path : ""
   save_ckp_path : ""
-  load_ckp_path : ""
+  load_ckp_path : Null
   gen_vid : False
  
 
