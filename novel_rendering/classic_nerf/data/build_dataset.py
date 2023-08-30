@@ -24,7 +24,7 @@ class Nerf_Dataset(Dataset):
         if((not self.training) and (self.gen_poses)):
             self.n_poses = self.hparams["test.n_poses"]
             self.poses= torch.from_numpy(self.generate_poses(self.n_poses)).to(torch.float32).to(self.device)
-        self.imgs,self.c2ws,self.H,self.W=load_all_data(self.hparams,self.hparams["data_path"],self.split,self.use_npz)
+        self.imgs,self.c2ws,self.H,self.W=load_all_data(self.hparams,self.split,self.use_npz)
         self.imgs = torch.from_numpy(self.imgs).to(torch.uint8)
         self.c2ws = torch.from_numpy(self.c2ws).to(torch.float32)
         self.cam_intrinsics,self.K=self.load_camera_intrinsics(self.H,self.W,self.use_npz)  

@@ -4,7 +4,7 @@ import logging
 from datetime import datetime
 import torch.nn.functional as F
 import time
-#import nerfacc
+import nerfacc
 import imageio.v2 as imageio
 import os 
 from .configs.config import default
@@ -17,7 +17,6 @@ import argparse
 from .models.VanillaNerfRadianceField import VanillaNeRFRadianceField
 from .data.build_dataset import Nerf_Dataset
 import sys
-import piq
 from lpips import LPIPS
 logging.basicConfig(
     level=logging.INFO,
@@ -32,19 +31,10 @@ def Argsparser():
                                    )
     
     parser.add_argument("--config", help="Path to config file.", required=False)
-    #parser.add_argument("opts", nargs=argparse.REMAINDER,
-                        #help="Modify self.hparams Example: train.py resume out_dir TRAIN.BATCH_SIZE 2")
+    parser.add_argument("opts", nargs=argparse.REMAINDER,
+                        help="Modify self.hparams Example: train.py resume out_dir TRAIN.BATCH_SIZE 2")
 
     return parser
-
-def args_not_parser():
-    pass
-def args_parser():
-    pass
-
-class hello():
-  def __init__():
-    pass
 
 class ClassicNerf():
     def __init__(self,data_path,use_npz) -> None:
@@ -54,6 +44,7 @@ class ClassicNerf():
             
         except:
             logging.warning("Please verify your parser")
+            sys.exit()
         self.hparams["data_path"]=data_path
         self.use_npz=use_npz
     def train(self):
@@ -77,8 +68,7 @@ class ClassicNerf():
         """
         logging.info("Prepare data and initialize model...")
         
-        logging.info("reached desired sport , shutting down...")
-        sys.exit()
+        logging.info("reached desired sport , proceeding...")
         # Seed RNG, for repeatability
         seed_everything(self.hparams["seed"])
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
