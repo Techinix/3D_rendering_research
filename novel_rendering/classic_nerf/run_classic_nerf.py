@@ -41,7 +41,6 @@ class ClassicNerf():
         logging.info("Instanciating Classic Nerf")
         try:
             self.hparams = default()
-            
         except:
             logging.warning("Please verify your parser")
             sys.exit()
