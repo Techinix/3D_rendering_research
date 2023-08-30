@@ -22,10 +22,12 @@ model :
 logs :
   save_every : 1
   show_every : 10
+  save_checkpoint_every : 500
+  save_rendered_img_every : 1
 saving: 
   save_mask : False
-  preds_folder : ""
-  model_name : ""
+  rendered_images_folder : "Results"
+  model_name : "Classic_Nerf_"
   masked_folder : ""
   drive_path : ""
   save_ckp_path : ""

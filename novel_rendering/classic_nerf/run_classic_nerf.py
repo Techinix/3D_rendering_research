@@ -195,6 +195,8 @@ class ClassicNerf():
                     psnrs.append(psnr)
 
                 if e % self.hparams["logs.show_every"] == 0 : 
+                    loss = torch.nn.functional.mse_loss(rgb, pixels)
+                    psnr = -10. * torch.log10(loss) 
                     end_time = time.time()
                     elapsed_time=end_time-start_time
                     logging.info(
@@ -205,7 +207,7 @@ class ClassicNerf():
                         max_depth={depth.max():.3f}" 
                     )
                     # save model using state_dict
-                    
+                if e > 0 and e % self.hparams["logs.save_checkpoint_every"] == 0 :
                     now = datetime.now() # current date and time
                     date_string = now.strftime("%Y-%m-%d_%H-%M-%S")
                     checkpoint = {
@@ -217,7 +219,6 @@ class ClassicNerf():
                         "scheduler" : scheduler.state_dict(),
                         "name" : self.hparams["saving.model_name"]+str(e)+"_aabbxyz_"+str(side_x)+"_"+str(side_y)+"_"+str(side_z)+"_"+date_string,
                     }
-
                     save_checkpoint(checkpoint,self.hparams["saving.save_ckp_path"]+ f"{checkpoint['name']}")
             end_time = time.time()
             logging.info(f"Model trained successfully ! it took {end_time-start_time}")
@@ -252,7 +253,16 @@ class ClassicNerf():
                         render_bkgd=render_bkgd
                         #test options
                     )
-                    if i % self.hparams["display.disp_every"]==0: 
+                    if i % self.hparams["logs.save_every"] == 0 :
+                        loss = torch.nn.functional.mse_loss(rgb, pixels)
+                        psnr = -10. * torch.log10(loss)
+                        lpips = lpips_metric(rgb, pixels).item()
+                        writer.add_scalar('Loss/test', loss, i)
+                        writer.add_scalar('Psnr/test', psnr, i)
+                        writer.add_scalar('lpips/test', lpips, i)
+
+                    if i % self.hparams["logs.show_every"]==0: 
+                        
                         end=time.time()
                         elapsed_time=end-start
                         if(self.hparams["test.gen_poses"]):
@@ -265,28 +275,22 @@ class ClassicNerf():
                             loss = torch.nn.functional.mse_loss(rgb, pixels)
                             psnr = -10. * torch.log10(loss)
                             lpips = lpips_metric(rgb, pixels).item()
-                            #ssim = ssim_metric(rgb, pixels)
-                            writer.add_scalar('Loss/test', loss, i)
-                            writer.add_scalar('Psnr/test', psnr, i)
-                            writer.add_scalar('lpips/test', lpips, i)
-                            #writer.add_scalar('ssim/test', ssim, i)
-
                             logging.info(
                                 f"elapsed_time={elapsed_time}s | step={i} | \
                                 loss={loss:.5f} | psnr={psnr:.2f} | lpips={lpips:.2f} \
                                 n_rendering_samples={n_rendering_samples:d} | num_rays={len(pixels):d} \
                                 max_depth={depth.max():.3f} | "
                             )
-                            
+                    if(i % self.hparams["logs.save_rendered_img_every"] == 0)        
                         rgb = torch.reshape(rgb, (h, w, 3))
                         imageio.imwrite(
-                                        self.hparams["saving.preds_folder"]+f"rgb_{i}.jpg",
+                                        self.hparams["saving.rendered_images_folder"]+f"rgb_{i}.jpg",
                                         (rgb.cpu().numpy() * 255).astype(np.uint8),
                                     )
             end_test=time.time()
             logging.info(f"Model tested successfully ! it took {end_test-start_test}")
         if(self.hparams["saving.gen_vid"]):
-            generate_video("/kaggle/working/out_sai/","out")
+            generate_video(self.hparams["saving.rendered_images_folder"],"out")
 
 
 if __name__ == "__main__":
