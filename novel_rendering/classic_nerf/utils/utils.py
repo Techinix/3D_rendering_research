@@ -117,9 +117,9 @@ def segment_images(mask_category=["car"],scene="car"):
               cv2.imwrite(os.path.join(OUTPUT_FOLDER, f"masked_{basename}.png"), img_png)
 
 
-def segment_single_image(predictor,fname,mask_ids):
+def segment_single_image(predictor,img,mask_ids):
                       
-      img = cv2.imread(fname)
+      
       outputs = predictor(img)
       output_mask = np.zeros((img.shape[0], img.shape[1]))
       best_surface=-1
