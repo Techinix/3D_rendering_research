@@ -17,6 +17,7 @@ def load_all_data(hparams,split,use_npz):
         camtoworlds= data["poses"]
         H = data["h"].item()
         W = data["w"].item()
+        print(H,W)
         return images, camtoworlds ,H, W
 
     if(hparams["colmap_generated"]):
