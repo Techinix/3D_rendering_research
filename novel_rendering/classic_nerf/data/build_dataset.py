@@ -194,12 +194,12 @@ class Nerf_Dataset(Dataset):
             camera_intrinsics["w"]=int(data["w"])
             print(camera_intrinsics["fl_x"])
             K = torch.tensor(
-            [
-                [camera_intrinsics["fl_x"], 0, camera_intrinsics["cx"]],
-                [0, camera_intrinsics["fl_y"], camera_intrinsics["cy"]],
-                [0, 0, 1],
-            ],
-            dtype=torch.float32,
+                [
+                    [camera_intrinsics["fl_x"], 0, camera_intrinsics["cx"]],
+                    [0, camera_intrinsics["fl_y"], camera_intrinsics["cy"]],
+                    [0, 0, 1],
+                ],
+                dtype=torch.float32,
             )  # (3, 3)
             return camera_intrinsics,K
         else :
