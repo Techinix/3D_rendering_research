@@ -7,7 +7,7 @@ import time
 #import nerfacc
 import imageio.v2 as imageio
 import os 
-from .configs.config import parse_args
+from .configs.config import default
 from .models import occ_grid
 from .utils.utils import seed_everything,load_checkpoint,save_checkpoint
 
@@ -50,7 +50,7 @@ class ClassicNerf():
     def __init__(self,data_path,use_npz) -> None:
         logging.info("Instanciating Classic Nerf")
         try:
-            self.hparams = parse_args(Argsparser())
+            self.hparams = default()
             
         except:
             logging.warning("Please verify your parser")
