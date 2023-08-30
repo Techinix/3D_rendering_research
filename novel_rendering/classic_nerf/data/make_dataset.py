@@ -15,8 +15,8 @@ def load_all_data(hparams,split,use_npz):
         data = np.load(hparams["data_path"])
         images = data["images"]
         camtoworlds= data["poses"]
-        H = data["h"]
-        W = data["w"]
+        H = data["h"].item()
+        W = data["w"].item()
         return images, camtoworlds ,H, W
 
     if(hparams["colmap_generated"]):
